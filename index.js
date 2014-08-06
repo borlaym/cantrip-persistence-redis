@@ -2,15 +2,15 @@ var fs = require("fs");
 _ = require("lodash");
 var redis = require("redis");
 
-client.on("error", function (err) {
-        console.log("Redis error " + err);
-    });
 
 module.exports = {
 	setupPersistence: function(callback) {
 		var client = redis.createClient(this.options.redis.port, this.options.redis.host, {
 			auth_pass: this.options.redis.auth
 		});
+		client.on("error", function (err) {
+		        console.log("Redis error " + err);
+		    });
 		var self = this;
 		client.hset("cantrip", "/_contents", "object");
 		callback();
