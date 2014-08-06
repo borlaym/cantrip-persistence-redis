@@ -16,15 +16,16 @@ module.exports = {
 	syncData: function() {},
 	dataStore: {
 		deleteNodes: function(path, callback) {
-			callback();
+			callback && callback();
 		},
 		setNode: function(path, value, callback) {
 			client.hset("cantrip", path, value);
-			callback();
+			callback && callback();
 		},
 		insertBatch: function(inserts, callback) {
-			client.hmset("cantrip", inserts);
-			callback();
+			inserts.unshift("cantrip");
+			client.hmset.apply(client, inserts);
+			callback && callback();
 		},
 		get: function(path, callback) {
 			client.hscan(["cantrip", 0, "MATCH", path+"*"], function(err, res) {
@@ -115,14 +116,16 @@ module.exports = {
 		set: function(path, data, callback) {
 			var inserts = [];
 			var self = this;
-			client.hget(["cantrip", path], function(err, res) {
+			if (path === "/_contents/") path = "/_contents";
+			client.hget(["cantrip", path], function(err, target) {
+				target = [{path: path, value: target}];
 				//The function that goes through the data object to insert actual documents to the database
 				var insert = function(obj, pointer) {
 					for (var key in obj) {
 						if (!_.isObject(obj[key])) {
 							if (pointer === "/_contents/") pointer = "/_contents"; //Fix when we try to set the root "/"
 							if (pointer === "/") pointer = ""; //Fix when we try to set the root "/"
-							inserts.push(self.setNode(pointer + "/" + key, obj[key]));
+							inserts.push(pointer + "/" + key); inserts.push(obj[key]);
 							self.deleteNodes(pointer + "/" + key + "\/"); //Delete all previous values this object had
 						} else {
 							if (pointer === "/_contents/") pointer = "/_contents"; //Fix when we try to set the root "/"
@@ -131,9 +134,11 @@ module.exports = {
 							if (obj[key]._id) {
 								keyToContinue = obj[key]._id;
 							}
-							if (_.isArray(obj[key])) inserts.push(self.setNode(pointer + "/" + key, "array"));
+							if (_.isArray(obj[key])) {
+								inserts.push(pointer + "/" + key); inserts.push("array");
+							}
 							else {
-								inserts.push(self.setNode(pointer + "/" + keyToContinue, "object"));
+								inserts.push(pointer + "/" + keyToContinue); inserts.push("object");
 							}
 							insert(obj[key], pointer + "/" + keyToContinue);
 						}
@@ -166,7 +171,8 @@ module.exports = {
 
 					} else {
 						//MERGE behavior (not really, but at least we can use the _id property as an index)
-						inserts.push(self.setNode(path + "/" + data._id, "object"));
+						inserts.push(path + "/" + data._id);
+						inserts.push("object");
 						insert(data, path + "/" + data._id);
 						self.insertBatch(inserts, callback);
 					}
