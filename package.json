@@ -1,21 +1,21 @@
 {
-  "name": "cantrip-persistence-mongodb",
+  "name": "cantrip-persistence-redis",
   "version": "0.0.0",
-  "description": "MongoDB persistence layer for Cantrip",
+  "description": "Redis persistence layer for Cantrip",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/borlaym/cantrip-persistence-mongodb.git"
+    "url": "https://github.com/borlaym/cantrip-persistence-redis.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/borlaym/cantrip-persistence-mongodb/issues"
+    "url": "https://github.com/borlaym/cantrip-persistence-redis/issues"
   },
-  "homepage": "https://github.com/borlaym/cantrip-persistence-mongodb",
+  "homepage": "https://github.com/borlaym/cantrip-persistence-redis",
   "devDependencies": {
     "Cantrip": "git+https://github.com/KriekApps/Cantrip.git",
     "load-grunt-tasks": "~0.4.0",
