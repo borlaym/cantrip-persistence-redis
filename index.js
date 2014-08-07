@@ -30,20 +30,30 @@ module.exports = {
 			callback && callback();
 		},
 		get: function(path, callback) {
-			client.hscan(["cantrip", 0, "MATCH", path+"*"], function(err, res) {
+			var array = [];
+			var scan = function(cursor, cb) {
+				client.hscan(["cantrip", cursor, "MATCH", path+"*"], function(err, res) {
+					if (err) {
+						callback(err, null);
+						return;
+					}
+					//Parse the returned values into an object
+					for (var i = 0; i < res[1].length / 2; i++) {
+						array.push({path: res[1][i*2], value : res[1][i*2+1]});
+					}
+					//Did scan end?
+					if (res[0] == 0) {
+						cb();
+					} else {
+						scan(res[0], cb);
+					}
 
-				if (err) {
-					callback(err, null);
-					return;
-				}
-
-				//Parse the returned values into an object
-				var array = [];
-				for (var i = 0; i < res[1].length / 2; i++) {
-					array.push({path: res[1][i*2], value : res[1][i*2+1]});
-				}
-
-
+				});
+			};
+			scan(0, function() {
+				array = _.sortBy(array, function(obj) {
+					return obj.path
+				});
 				var result = null; //This will hold the resulting object. If there were no documents found, it stays on null
 				
 				if (array.length === 0) {
