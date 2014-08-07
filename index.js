@@ -1,11 +1,11 @@
 var fs = require("fs");
 _ = require("lodash");
 var redis = require("redis");
-
+var client;
 
 module.exports = {
 	setupPersistence: function(callback) {
-		var client = redis.createClient(this.options.redis.port, this.options.redis.host, {
+		client = redis.createClient(this.options.redis.port, this.options.redis.host, {
 			auth_pass: this.options.redis.auth
 		});
 		client.on("error", function (err) {
